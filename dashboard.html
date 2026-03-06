@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="sehatlens-api-base" content="" />
+    <title>Sehat Lens - Dashboard</title>
+    <script>
+      (function () {
+        var storageKey = 'medilens-theme';
+        try {
+          var savedTheme = localStorage.getItem(storageKey);
+          if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (error) {
+          /* ignore */
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="main.js"></script>
+    <script defer src="dashboard.js"></script>
+  </head>
+  <body>
+    <div class="mobile-nav-overlay" data-mobile-overlay></div>
+    <header class="navbar">
+      <a href="index.html" class="nav-brand">Sehat Lens</a>
+      <nav class="nav-links desktop">
+        <a href="index.html">Home</a>
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="vault.html">Med Vault</a>
+        <a href="about.html">About</a>
+      </nav>
+      <div class="nav-controls">
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme">
+          <span class="theme-icon sun" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <line x1="12" y1="2.5" x2="12" y2="5.5"></line>
+              <line x1="12" y1="18.5" x2="12" y2="21.5"></line>
+              <line x1="4.5" y1="12" x2="7.5" y2="12"></line>
+              <line x1="16.5" y1="12" x2="19.5" y2="12"></line>
+              <line x1="5.6" y1="5.6" x2="7.8" y2="7.8"></line>
+              <line x1="16.2" y1="16.2" x2="18.4" y2="18.4"></line>
+              <line x1="5.6" y1="18.4" x2="7.8" y2="16.2"></line>
+              <line x1="16.2" y1="7.8" x2="18.4" y2="5.6"></line>
+            </svg>
+          </span>
+          <span class="theme-icon moon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3 6.5 6.5 0 1 0 21 14.5z"></path>
+            </svg>
+          </span>
+          <span class="knob"></span>
+        </button>
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language">
+          <span class="lang-pill">EN</span>
+          <span class="lang-sep">/</span>
+          <span class="lang-pill">HI</span>
+        </button>
+      </div>
+      <button class="nav-toggle" data-nav-toggle aria-label="Toggle navigation">
+        <span></span>
+      </button>
+    </header>
+    <nav class="nav-links mobile" data-mobile-menu>
+      <a href="index.html">Home</a>
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="vault.html">Med Vault</a>
+      <a href="about.html">About</a>
+    </nav>
+
+    <main>
+      <section class="card greeting-card reveal" data-delay="0">
+        <p class="eyebrow">The Analysis Sanctuary</p>
+        <div class="dashboard-head-row">
+          <h2 data-greeting-title>Good morning</h2>
+          <div class="dashboard-actions">
+            <button class="view-link" type="button" data-compare-trigger>Add Report To Compare</button>
+            <button class="view-link" type="button" data-reset-data>Reset Data</button>
+          </div>
+        </div>
+        <p data-current-date>Wednesday, 12 February 2025</p>
+        <p>Your report has been analyzed. Here's what we found.</p>
+      </section>
+
+      <section class="card reveal" data-delay="50" data-no-analysis hidden>
+        <p>No analysis found. Please upload a report first.</p>
+      </section>
+
+      <section class="card reveal flagged-zone" data-delay="70" data-flagged-section hidden>
+        <div class="section-header-inline">
+          <h3>Priority Flags</h3>
+          <span class="section-chip" data-flagged-count>0 markers</span>
+        </div>
+        <p class="section-subtle">Most important out-of-range markers first.</p>
+        <div class="dashboard-grid flagged-grid" data-flagged-grid></div>
+      </section>
+
+      <section class="card reveal wellness-zone" data-delay="90" data-summary-section hidden>
+        <div class="section-header-inline">
+          <h3>Stay-Healthy Playbook</h3>
+          <span class="section-chip">Personalized</span>
+        </div>
+        <div class="summary-panels summary-panels-featured">
+          <article class="summary-panel">
+            <h4>What To Eat</h4>
+            <ul data-summary-eat></ul>
+          </article>
+          <article class="summary-panel">
+            <h4>What To Do</h4>
+            <ul data-summary-dothis></ul>
+          </article>
+          <article class="summary-panel">
+            <h4>Watch Carefully</h4>
+            <ul data-summary-attention></ul>
+          </article>
+          <article class="summary-panel">
+            <h4>What To Avoid</h4>
+            <ul data-summary-avoid></ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="card reveal all-metrics-shell" data-delay="110">
+        <div class="section-header-inline">
+          <h3>Complete Metric Details</h3>
+          <span class="section-chip">Grouped View</span>
+        </div>
+        <p class="section-subtle">Scroll for category-wise deep dive.</p>
+      </section>
+
+      <section class="card reveal trend-card" data-delay="130" data-compare-section hidden>
+        <div class="section-header-inline">
+          <h3>Report Comparison</h3>
+          <span class="section-chip" data-compare-order>Current vs Uploaded</span>
+        </div>
+        <p class="section-subtle" data-compare-note>Upload an old or new report to compare trends.</p>
+        <div class="summary-panels" data-compare-summary></div>
+        <div class="dashboard-grid" data-compare-grid></div>
+      </section>
+
+      <section data-category-sections></section>
+
+      <section class="ekg-wrapper reveal" data-delay="200">
+        <svg viewBox="0 0 500 80" width="100%" data-animate-ekg aria-hidden="true">
+          <path d="M0,40 L80,40 L100,40 L115,5 L130,75 L145,40 L200,40 L220,40 L235,20 L245,60 L255,20 L265,60 L275,40 L340,40 L355,25 L365,40 L500,40" fill="none" stroke="var(--accent-teal)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </section>
+
+      <div class="upload-modal" data-metric-modal>
+        <div class="upload-content metric-modal-content" role="dialog" aria-modal="true" aria-labelledby="metric-modal-title">
+          <button class="dismiss-btn modal-close-btn" type="button" data-metric-modal-close aria-label="Close details">Close</button>
+          <h3 id="metric-modal-title" data-modal-name>Metric Details</h3>
+          <div class="modal-keyline">
+            <p><strong>Value:</strong> <span data-modal-value></span></p>
+            <p><strong>Status:</strong> <span data-modal-status></span></p>
+          </div>
+          <p><strong>Insight:</strong> <span data-modal-insight></span></p>
+          <strong class="modal-section-title">Natural Fix</strong>
+          <ul data-modal-fixes></ul>
+          <div data-modal-foods-section>
+            <strong class="modal-section-title">Foods Where Found</strong>
+            <ul data-modal-foods></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-modal" data-compare-modal>
+        <div class="upload-content compare-modal-content" role="dialog" aria-modal="true" aria-labelledby="compare-modal-title">
+          <button class="dismiss-btn modal-close-btn" type="button" data-compare-close aria-label="Close comparison options">Close</button>
+          <h3 id="compare-modal-title">Add Report To Compare</h3>
+          <p>Choose where the uploaded report should appear in timeline.</p>
+          <div class="compare-choice-row">
+            <button class="button" type="button" data-compare-choice="old">Upload Old Report</button>
+            <button class="button" type="button" data-compare-choice="new">Upload New Report</button>
+          </div>
+          <input type="file" data-compare-input accept="application/pdf" hidden />
+          <p class="profile-meta" data-compare-status>Select one option to continue.</p>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="nav-brand">Sehat Lens</a>
+          <p>AI-powered health report guidance for every family.</p>
+        </div>
+        <div class="footer-links">
+          <strong>Explore</strong>
+          <a href="index.html">Home</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="vault.html">Med Vault</a>
+          <a href="about.html">About</a>
+        </div>
+        <div>
+          <strong>Connect</strong>
+          <p class="footer-contact-text">We can be contacted anytime for support and feedback.</p>
+          <a class="footer-contact-link" href="mailto:contact.sehatlens@gmail.com">contact.sehatlens@gmail.com</a>
+        </div>
+      </div>
+      <p class="footer-bottom">� 2026 Sehat Lens - Built for health literacy - Not a medical device</p>
+    </footer>
+  </body>
+</html>
+
+
+

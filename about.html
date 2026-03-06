@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="sehatlens-api-base" content="" />
+    <title>About Sehat Lens</title>
+    <script>
+      (function () {
+        var storageKey = 'medilens-theme';
+        try {
+          var savedTheme = localStorage.getItem(storageKey);
+          if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (error) {
+          /* ignore */
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="main.js"></script>
+  </head>
+  <body class="about-page">
+    <div class="mobile-nav-overlay" data-mobile-overlay></div>
+    <header class="navbar">
+      <a href="index.html" class="nav-brand">Sehat Lens</a>
+      <nav class="nav-links desktop">
+        <a href="index.html">Home</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="vault.html">Med Vault</a>
+        <a href="about.html" class="active">About</a>
+      </nav>
+      <div class="nav-controls">
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme">
+          <span class="theme-icon sun" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <line x1="12" y1="2.5" x2="12" y2="5.5"></line>
+              <line x1="12" y1="18.5" x2="12" y2="21.5"></line>
+              <line x1="4.5" y1="12" x2="7.5" y2="12"></line>
+              <line x1="16.5" y1="12" x2="19.5" y2="12"></line>
+              <line x1="5.6" y1="5.6" x2="7.8" y2="7.8"></line>
+              <line x1="16.2" y1="16.2" x2="18.4" y2="18.4"></line>
+              <line x1="5.6" y1="18.4" x2="7.8" y2="16.2"></line>
+              <line x1="16.2" y1="7.8" x2="18.4" y2="5.6"></line>
+            </svg>
+          </span>
+          <span class="theme-icon moon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3 6.5 6.5 0 1 0 21 14.5z"></path>
+            </svg>
+          </span>
+          <span class="knob"></span>
+        </button>
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language">
+          <span class="lang-pill">EN</span>
+          <span class="lang-sep">/</span>
+          <span class="lang-pill">HI</span>
+        </button>
+      </div>
+      <button class="nav-toggle" data-nav-toggle aria-label="Toggle navigation">
+        <span></span>
+      </button>
+    </header>
+    <nav class="nav-links mobile" data-mobile-menu>
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="vault.html">Med Vault</a>
+      <a href="about.html" class="active">About</a>
+    </nav>
+
+    <main class="about-main">
+      <div class="about-bg" aria-hidden="true">
+        <span class="about-orb about-orb-a"></span>
+        <span class="about-orb about-orb-b"></span>
+        <span class="about-grid"></span>
+      </div>
+
+      <section class="about-hero reveal" data-delay="0">
+        <div class="about-hero-copy">
+          <p class="eyebrow">Inside Sehat Lens</p>
+          <h1>Health intelligence that speaks human.</h1>
+          <p>
+            Sehat Lens converts dense pathology reports into clear explanations, practical guidance,
+            and doctor-ready context so people can act faster and with confidence.
+          </p>
+          <div class="about-hero-tags">
+            <span>Patient-first design</span>
+            <span>Clinically aligned logic</span>
+            <span>Action-focused insights</span>
+          </div>
+        </div>
+        <aside class="about-hero-panel">
+          <h3>What We Optimize For</h3>
+          <ul>
+            <li>Understanding in under 2 minutes</li>
+            <li>Highlighting what needs attention first</li>
+            <li>Reducing anxiety from medical jargon</li>
+            <li>Helping you ask better doctor questions</li>
+          </ul>
+        </aside>
+      </section>
+
+      <section class="about-pillar-grid reveal" data-delay="60">
+        <article class="about-pillar-card">
+          <h3>Clarity</h3>
+          <p>Every marker is explained in direct language with context about why it matters.</p>
+        </article>
+        <article class="about-pillar-card">
+          <h3>Prioritization</h3>
+          <p>Flagged values are surfaced first so you know where to focus immediately.</p>
+        </article>
+        <article class="about-pillar-card">
+          <h3>Actionability</h3>
+          <p>Summaries convert results into what to eat, what to do, what to monitor, and what to avoid.</p>
+        </article>
+      </section>
+
+      <section class="about-flow reveal" data-delay="90">
+        <div class="section-header">
+          <h2>How It Works</h2>
+          <p>From upload to understanding in one streamlined flow.</p>
+        </div>
+        <div class="about-flow-grid">
+          <article class="about-flow-step">
+            <span>01</span>
+            <h4>Parse</h4>
+            <p>Report text and marker values are extracted and normalized.</p>
+          </article>
+          <article class="about-flow-step">
+            <span>02</span>
+            <h4>Interpret</h4>
+            <p>Biomarkers are classified by status, category, and relevance.</p>
+          </article>
+          <article class="about-flow-step">
+            <span>03</span>
+            <h4>Guide</h4>
+            <p>You get focused recommendations and monitor-first alerts.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-section reveal" data-delay="120">
+        <div class="section-header">
+          <h2>FAQs</h2>
+          <p>Short answers to common questions.</p>
+        </div>
+        <div class="faq-grid">
+          <article class="accordion">
+            <button class="accordion-header">
+              <strong>Is Sehat Lens a medical diagnosis tool?</strong>
+              <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
+            </button>
+            <div class="accordion-body">
+              <p>No. It is an educational support layer that helps you understand and discuss your reports better.</p>
+            </div>
+          </article>
+          <article class="accordion">
+            <button class="accordion-header">
+              <strong>Does it work for all report formats?</strong>
+              <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
+            </button>
+            <div class="accordion-body">
+              <p>It is optimized for common pathology PDFs and keeps improving with more report layouts.</p>
+            </div>
+          </article>
+          <article class="accordion">
+            <button class="accordion-header">
+              <strong>Can I clear my data?</strong>
+              <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
+            </button>
+            <div class="accordion-body">
+              <p>Yes. Use Reset Data on Dashboard to remove locally stored analysis and history.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="disclaimer reveal" data-delay="140">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <p>Sehat Lens is informational only and does not replace professional medical diagnosis or treatment.</p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="nav-brand">Sehat Lens</a>
+          <p>AI-powered health report guidance for every family.</p>
+        </div>
+        <div class="footer-links">
+          <strong>Explore</strong>
+          <a href="index.html">Home</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="vault.html">Med Vault</a>
+          <a href="about.html">About</a>
+        </div>
+        <div>
+          <strong>Connect</strong>
+          <p class="footer-contact-text">We can be contacted anytime for support and feedback.</p>
+          <a class="footer-contact-link" href="mailto:contact.sehatlens@gmail.com">contact.sehatlens@gmail.com</a>
+        </div>
+      </div>
+      <p class="footer-bottom">� 2026 Sehat Lens - Built for health literacy - Not a medical device</p>
+    </footer>
+  </body>
+</html>
+
