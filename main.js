@@ -435,16 +435,10 @@
   });
 
   const resolveApiBase = () => {
-    const override = window.SEHATLENS_API_BASE;
-    if (typeof override === 'string' && override.trim()) {
-      return override.trim().replace(/\/+$/, '');
+    if (window.location.hostname === 'localhost') {
+      return 'http://localhost:3000';
     }
-    const metaBase = document.querySelector('meta[name="sehatlens-api-base"]')?.getAttribute('content');
-    if (typeof metaBase === 'string' && metaBase.trim()) {
-      return metaBase.trim().replace(/\/+$/, '');
-    }
-    if (window.location.protocol === 'file:') return '';
-    return window.location.origin;
+    return 'https://swasthlens-backend.onrender.com';
   };
   const ANALYZE_ENDPOINT = `${resolveApiBase()}/api/analyze-report`;
 
