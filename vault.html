@@ -10,7 +10,8 @@
         var storageKey = 'medilens-theme';
         try {
           var savedTheme = localStorage.getItem(storageKey);
-          if (savedTheme === 'dark') {
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
             document.documentElement.classList.add('dark');
           }
         } catch (error) {

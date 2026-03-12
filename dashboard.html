@@ -10,7 +10,8 @@
         var storageKey = 'medilens-theme';
         try {
           var savedTheme = localStorage.getItem(storageKey);
-          if (savedTheme === 'dark') {
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
             document.documentElement.classList.add('dark');
           }
         } catch (error) {
@@ -96,29 +97,36 @@
         </div>
         <p class="section-subtle">Most important out-of-range markers first.</p>
         <div class="dashboard-grid flagged-grid" data-flagged-grid></div>
+        <div class="playbook-launch-row">
+          <p class="playbook-launch-note">Use these flags as input for a personalized plan. Click below to open the full Stay-Healthy Playbook.</p>
+          <button type="button" class="playbook-launch-btn" data-playbook-launch aria-expanded="false">
+            Open Stay-Healthy Playbook
+          </button>
+        </div>
       </section>
 
-      <section class="card reveal wellness-zone" data-delay="90" data-summary-section hidden>
+      <section class="card playbook-board" data-playbook-section hidden>
         <div class="section-header-inline">
           <h3>Stay-Healthy Playbook</h3>
-          <span class="section-chip">Personalized</span>
+          <span class="section-chip" data-playbook-derived>Derived from 0 markers</span>
         </div>
-        <div class="summary-panels summary-panels-featured">
-          <article class="summary-panel">
-            <h4>What To Eat</h4>
-            <ul data-summary-eat></ul>
+        <p class="section-subtle" data-playbook-summary>Built directly from your non-normal markers and their direction (high/low/deficient).</p>
+        <div class="playbook-grid">
+          <article class="playbook-lane lane-eat">
+            <h4>What To Eat More</h4>
+            <ul data-playbook-eat></ul>
           </article>
-          <article class="summary-panel">
+          <article class="playbook-lane lane-do">
             <h4>What To Do</h4>
-            <ul data-summary-dothis></ul>
+            <ul data-playbook-do></ul>
           </article>
-          <article class="summary-panel">
-            <h4>Watch Carefully</h4>
-            <ul data-summary-attention></ul>
+          <article class="playbook-lane lane-watch">
+            <h4>Watch Closely</h4>
+            <ul data-playbook-watch></ul>
           </article>
-          <article class="summary-panel">
-            <h4>What To Avoid</h4>
-            <ul data-summary-avoid></ul>
+          <article class="playbook-lane lane-avoid">
+            <h4>What To Limit / Avoid</h4>
+            <ul data-playbook-avoid></ul>
           </article>
         </div>
       </section>

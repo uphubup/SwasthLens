@@ -10,7 +10,8 @@
         var storageKey = 'medilens-theme';
         try {
           var savedTheme = localStorage.getItem(storageKey);
-          if (savedTheme === 'dark') {
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
             document.documentElement.classList.add('dark');
           }
         } catch (error) {
@@ -75,6 +76,8 @@
         <span class="about-orb about-orb-a"></span>
         <span class="about-orb about-orb-b"></span>
         <span class="about-grid"></span>
+        <span class="about-constellation"></span>
+        <span class="about-wave"></span>
       </div>
 
       <section class="about-hero reveal" data-delay="0">

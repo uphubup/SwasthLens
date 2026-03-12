@@ -5,7 +5,7 @@
   const flaggedSection = document.querySelector('[data-flagged-section]');
   const flaggedGrid = document.querySelector('[data-flagged-grid]');
   const flaggedCount = document.querySelector('[data-flagged-count]');
-  const summarySection = document.querySelector('[data-summary-section]');
+  const playbookSection = document.querySelector('[data-playbook-section]');
 
   const modal = document.querySelector('[data-metric-modal]');
   const modalClose = document.querySelector('[data-metric-modal-close]');
@@ -19,10 +19,13 @@
   const resetDataButton = document.querySelector('[data-reset-data]');
   const modalPanel = document.querySelector('.metric-modal-content');
 
-  const summaryEat = document.querySelector('[data-summary-eat]');
-  const summaryAttention = document.querySelector('[data-summary-attention]');
-  const summaryDoThis = document.querySelector('[data-summary-dothis]');
-  const summaryAvoid = document.querySelector('[data-summary-avoid]');
+  const playbookLaunch = document.querySelector('[data-playbook-launch]');
+  const playbookEat = document.querySelector('[data-playbook-eat]');
+  const playbookWatch = document.querySelector('[data-playbook-watch]');
+  const playbookDo = document.querySelector('[data-playbook-do]');
+  const playbookAvoid = document.querySelector('[data-playbook-avoid]');
+  const playbookDerived = document.querySelector('[data-playbook-derived]');
+  const playbookSummary = document.querySelector('[data-playbook-summary]');
   const compareTrigger = document.querySelector('[data-compare-trigger]');
   const compareSection = document.querySelector('[data-compare-section]');
   const compareOrder = document.querySelector('[data-compare-order]');
@@ -63,6 +66,49 @@
   const textOrFallback = (value) => {
     const text = String(value ?? '').trim();
     return text || fallbackText;
+  };
+  const placeholderPattern = /^(information unavailable|unavailable|not available|n\/a|na|none|null|unknown|not provided|not specified|-|--)$/i;
+  const sanitizeAdviceList = (items) =>
+    safeArray(items)
+      .map((item) => String(item ?? '').replace(/\s+/g, ' ').trim())
+      .filter((item) => item && !placeholderPattern.test(item));
+
+  const buildNaturalFixFallback = (metric) => {
+    const key = normalizeMetricKey(metric?.name);
+    if (/vitamin d|vitamin b12|folate|iron|ferritin|calcium/.test(key)) {
+      return [
+        'Prioritize nutrient-dense foods and follow a clinician-guided supplement plan.',
+        'Get regular morning sunlight exposure and recheck levels in follow-up labs.',
+      ];
+    }
+    if (/glucose|hba1c|sugar|insulin/.test(key)) {
+      return [
+        'Use steady meal timing with lower refined sugar intake.',
+        'Do 20-30 minutes of daily walking and track glucose trends regularly.',
+      ];
+    }
+    if (/ldl|hdl|triglyceride|cholesterol|lipid/.test(key)) {
+      return [
+        'Increase fiber-rich meals and reduce deep-fried or trans-fat-heavy foods.',
+        'Add regular cardio activity most days of the week and monitor lipid trends.',
+      ];
+    }
+    if (/liver|sgot|sgpt|bilirubin/.test(key)) {
+      return [
+        'Avoid alcohol and unnecessary self-medication that can strain the liver.',
+        'Choose balanced meals with hydration and repeat tests if advised.',
+      ];
+    }
+    if (/creatinine|urea|kidney|egfr/.test(key)) {
+      return [
+        'Maintain hydration across the day unless fluid restriction is prescribed.',
+        'Review painkiller use and blood pressure control with your clinician.',
+      ];
+    }
+    return [
+      'Maintain a consistent sleep, hydration, and daily movement routine.',
+      'Repeat this marker on schedule and discuss trend changes with your clinician.',
+    ];
   };
 
   const escapeHtml = (value) =>
@@ -157,7 +203,7 @@
     return Number.isFinite(n) ? n : NaN;
   };
 
-  const renderList = (target, items, fallback = true) => {
+  const renderList = (target, items, fallback = true, animated = true) => {
     if (!target) return;
     const list = safeArray(items).map((item) => String(item ?? '').trim()).filter(Boolean);
     target.innerHTML = '';
@@ -172,12 +218,24 @@
     const fragment = document.createDocumentFragment();
     list.forEach((item, index) => {
       const li = document.createElement('li');
-      li.className = 'modal-list-item';
-      li.style.setProperty('--item-index', String(index));
+      if (animated) {
+        li.className = 'modal-list-item';
+        li.style.setProperty('--item-index', String(index));
+      }
       li.textContent = item;
       fragment.appendChild(li);
     });
     target.appendChild(fragment);
+  };
+
+  const syncPlaybookSection = (open) => {
+    if (!playbookSection || !playbookLaunch) return;
+    const shouldOpen = Boolean(open);
+    playbookSection.hidden = !shouldOpen;
+    playbookSection.classList.toggle('is-open', shouldOpen);
+    if (shouldOpen) playbookSection.classList.add('revealed');
+    playbookLaunch.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    playbookLaunch.textContent = shouldOpen ? t('Hide Stay-Healthy Playbook', 'स्टे-हेल्दी प्लेबुक छुपाएं') : t('Open Stay-Healthy Playbook', 'स्टे-हेल्दी प्लेबुक खोलें');
   };
 
   const metricValueText = (metric) => {
@@ -207,6 +265,90 @@
       line
     ) && !isStatMonitorLine(line);
 
+  const derivePlaybookFromMetrics = (flaggedMetrics) => {
+    const eat = [];
+    const doThis = [];
+    const watch = [];
+    const avoid = [];
+
+    const addMappedAdvice = (metric, status, bucket) => {
+      const key = normalizeMetricKey(metric?.name);
+      const category = normalizeCategory(metric?.category);
+
+      if (bucket === 'eat') {
+        if (/vitamin d/.test(key)) eat.push('Fatty fish, egg yolk, and fortified dairy with morning sunlight exposure.');
+        if (/vitamin b12/.test(key)) eat.push('Add B12-rich foods like eggs, fish, dairy, and fortified cereals.');
+        if (/hemoglobin|rbc|iron|ferritin/.test(key)) eat.push('Prioritize iron + folate foods: leafy greens, lentils, beans, dates, and citrus.');
+        if (/hdl/.test(key)) eat.push('Increase nuts, seeds, olive oil, and omega-3 rich foods.');
+        if (/albumin|protein/.test(key)) eat.push('Include adequate protein from pulses, dairy, eggs, fish, or lean meats.');
+        if (/kidney|creatinine|urea/.test(key)) eat.push('Use balanced low-salt meals and hydration-focused foods.');
+        if (/thyroid|tsh|t3|t4/.test(key)) eat.push('Keep iodine + selenium balanced with eggs, dairy, nuts, and seafood.');
+        if (category === 'Lipid' && status !== 'normal') eat.push('Favor high-fiber meals: oats, legumes, vegetables, and whole grains.');
+      }
+
+      if (bucket === 'avoid') {
+        if (/glucose|hba1c|sugar/.test(key)) avoid.push('Limit sugary drinks, desserts, and refined carbs.');
+        if (/ldl|triglyceride|cholesterol|lipid/.test(key)) avoid.push('Avoid deep-fried, trans-fat, and ultra-processed foods.');
+        if (/sgot|sgpt|bilirubin|liver/.test(key)) avoid.push('Avoid alcohol and unnecessary self-medication.');
+        if (/creatinine|urea|kidney/.test(key)) avoid.push('Avoid high-salt packaged foods and painkiller overuse.');
+        if (/uric acid/.test(key)) avoid.push('Reduce organ meats, red meat excess, and beer/alcohol.');
+        if (/bp|pressure/.test(key)) avoid.push('Avoid excess sodium and packaged salty snacks.');
+      }
+
+      if (bucket === 'do') {
+        if (/glucose|hba1c|sugar/.test(key)) doThis.push('Do 10-15 minutes of post-meal walking after major meals.');
+        if (/ldl|triglyceride|cholesterol|lipid/.test(key)) doThis.push('Do at least 150 min/week cardio + 2 days strength training.');
+        if (/vitamin d/.test(key)) doThis.push('Get consistent morning sunlight 15-20 minutes most days.');
+        if (/hemoglobin|rbc|iron|ferritin/.test(key)) doThis.push('Track fatigue and recheck CBC/iron profile as advised.');
+        if (/liver/.test(key)) doThis.push('Keep hydration steady and repeat liver profile on schedule.');
+        if (/kidney|creatinine|urea/.test(key)) doThis.push('Maintain hydration and monitor BP regularly.');
+      }
+    };
+
+    flaggedMetrics.forEach((metric) => {
+      const status = String(metric?.status || '').toLowerCase();
+      const valueText = metricValueText(metric);
+      watch.push(`${textOrFallback(metric?.name)}: ${valueText} (${statusLabel(status)})`);
+
+      const fixes = sanitizeAdviceList(metric?.naturalFix);
+      fixes.forEach((line) => {
+        if (isFoodLine(line)) eat.push(line);
+        if (isPhysicalActionLine(line)) doThis.push(line);
+        if (isAvoidLine(line)) avoid.push(line);
+      });
+
+      const foods = safeArray(metric?.foodsWhereFound).map((f) => String(f || '').trim()).filter(Boolean);
+      foods.forEach((food) => eat.push(food));
+
+      if (status === 'low' || status === 'deficient') {
+        addMappedAdvice(metric, status, 'eat');
+        addMappedAdvice(metric, status, 'do');
+      }
+      if (status === 'high' || status === 'borderline_high') {
+        addMappedAdvice(metric, status, 'avoid');
+        addMappedAdvice(metric, status, 'do');
+      }
+    });
+
+    const fallbackEat = ['Leafy greens, legumes, and high-fiber whole foods matched to low markers.'];
+    const fallbackDo = ['Daily walking, sleep consistency, and repeat tracking of non-normal markers.'];
+    const fallbackWatch = ['Track all flagged markers in follow-up reports.'];
+    const fallbackAvoid = ['Limit ultra-processed foods, excess sugar, and frequent alcohol/smoking patterns.'];
+
+    return {
+      eat: dedupe(eat).slice(0, 10).concat(dedupe(eat).length ? [] : fallbackEat),
+      doThis: dedupe(doThis).slice(0, 10).concat(dedupe(doThis).length ? [] : fallbackDo),
+      watch: dedupe(watch).slice(0, 10).concat(dedupe(watch).length ? [] : fallbackWatch),
+      avoid: dedupe(avoid).slice(0, 10).concat(dedupe(avoid).length ? [] : fallbackAvoid),
+      counts: {
+        high: flaggedMetrics.filter((m) => String(m?.status).toLowerCase() === 'high').length,
+        low: flaggedMetrics.filter((m) => String(m?.status).toLowerCase() === 'low').length,
+        deficient: flaggedMetrics.filter((m) => String(m?.status).toLowerCase() === 'deficient').length,
+        borderline: flaggedMetrics.filter((m) => String(m?.status).toLowerCase() === 'borderline_high').length,
+      },
+    };
+  };
+
   const openModal = (metric) => {
     if (!modal) return;
 
@@ -221,7 +363,8 @@
       : (aboutText || whyText || fallbackText);
     if (modalInsight) modalInsight.textContent = combinedInsight;
 
-    renderList(modalFixes, metric?.naturalFix);
+    const cleanedFixes = sanitizeAdviceList(metric?.naturalFix);
+    renderList(modalFixes, cleanedFixes.length ? cleanedFixes : buildNaturalFixFallback(metric));
 
     const foods = safeArray(metric?.foodsWhereFound).map((item) => String(item ?? '').trim()).filter(Boolean);
     if (modalFoodsSection) modalFoodsSection.hidden = foods.length === 0;
@@ -573,66 +716,38 @@
     flaggedGrid.appendChild(flaggedFragment);
   }
 
-  const summary = data?.summary || {};
-  const listFromSummary = (field) => safeArray(summary?.[field]).map((item) => String(item || '').trim()).filter(Boolean);
+  const playbook = derivePlaybookFromMetrics(flaggedMetrics);
+  renderList(playbookEat, playbook.eat, false, false);
+  renderList(playbookDo, playbook.doThis, false, false);
+  renderList(playbookWatch, playbook.watch, false, false);
+  renderList(playbookAvoid, playbook.avoid, false, false);
 
-  const foodsFromMetrics = (() => {
-    const result = [];
-    metrics.forEach((metric) => {
-      safeArray(metric?.foodsWhereFound).forEach((food) => {
-        const text = String(food || '').trim();
-        if (text && !result.includes(text)) result.push(text);
-      });
-    });
-    return result;
-  })();
-
-  const watchFromMetrics = flaggedMetrics
-    .slice(0, 10)
-    .map((metric) => `${metric.name}: ${metric.value}${metric.unit ? ` ${metric.unit}` : ''} (${statusLabel(metric.status)})`);
-  const fixesFromFlagged = dedupe(
-    flaggedMetrics
-      .slice(0, 12)
-      .flatMap((metric) => safeArray(metric?.naturalFix))
-      .map((item) => String(item || '').trim())
-      .filter(Boolean)
-  );
-
-  const eatRaw = listFromSummary('whatToEat')
-    .concat(listFromSummary('doThis'))
-    .concat(foodsFromMetrics);
-  const doRaw = listFromSummary('whatToDo').concat(listFromSummary('doThis'));
-  const watchRaw = listFromSummary('watchCarefully')
-    .concat(listFromSummary('attention'))
-    .concat(watchFromMetrics);
-  const avoidRaw = listFromSummary('whatToAvoid').concat(listFromSummary('avoid'));
-
-  const eatList = dedupe(eatRaw.filter(isFoodLine)).slice(0, 8);
-  const doListBase = dedupe(doRaw.filter(isPhysicalActionLine));
-  const doListFromFixes = fixesFromFlagged.filter(isPhysicalActionLine);
-  const doFallback = [
-    'Walk 30 minutes daily at moderate pace.',
-    'Do strength training 2-3 times per week.',
-    'Keep a consistent 7-8 hour sleep routine.',
-    'Do light post-meal movement for 10-15 minutes.',
-  ];
-  const doList = dedupe([...doListBase, ...doListFromFixes, ...doFallback]).slice(0, 8);
-  const watchList = dedupe(watchRaw.filter(isStatMonitorLine)).slice(0, 8);
-  const avoidFallback = [
-    'Avoid ultra-processed junk food and sugary drinks.',
-    'Limit deep-fried foods and trans-fat-heavy snacks.',
-    'Avoid smoking/vaping and frequent alcohol use.',
-    'Avoid a sedentary routine and late-night overeating.',
-  ];
-  const avoidList = dedupe([...avoidRaw.filter(isAvoidLine), ...avoidFallback]).slice(0, 8);
-
-  if (summarySection) {
-    summarySection.hidden = !(eatList.length || doList.length || watchList.length || avoidList.length);
+  if (playbookDerived) {
+    const totalFlagged = flaggedMetrics.length;
+    playbookDerived.textContent = `Derived from ${totalFlagged} markers`;
   }
-  renderList(summaryEat, eatList, false);
-  renderList(summaryDoThis, doList, false);
-  renderList(summaryAttention, watchList, false);
-  renderList(summaryAvoid, avoidList, false);
+  if (playbookSummary) {
+    playbookSummary.textContent =
+      `Built from ${playbook.counts.high} high, ${playbook.counts.low} low, ${playbook.counts.deficient} deficient, and ${playbook.counts.borderline} borderline-high markers.`;
+  }
+
+  const playbookAvailable = flaggedMetrics.length > 0;
+  if (playbookSection) {
+    playbookSection.hidden = true;
+    playbookSection.classList.remove('is-open');
+  }
+    if (playbookLaunch && flaggedSection) {
+      playbookLaunch.hidden = !playbookAvailable;
+      playbookLaunch.setAttribute('aria-expanded', 'false');
+      playbookLaunch.textContent = t('Open Stay-Healthy Playbook', 'स्टे-हेल्दी प्लेबुक खोलें');
+      if (!playbookLaunch.dataset.bound) {
+        playbookLaunch.addEventListener('click', () => {
+          const opening = Boolean(playbookSection?.hidden);
+          syncPlaybookSection(opening);
+        });
+        playbookLaunch.dataset.bound = 'true';
+      }
+    }
 
   const grouped = new Map(categories.map((category) => [category, []]));
   metrics.forEach((metric) => {

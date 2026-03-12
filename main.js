@@ -2,36 +2,87 @@
   const htmlEl = document.documentElement;
   const body = document.body;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const supportsFinePointer = window.matchMedia('(pointer: fine)').matches;
+  const pathName = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  const pageKey = pathName.replace('.html', '') || 'index';
 
   requestAnimationFrame(() => body.classList.add('page-loaded'));
+  body.classList.add(`page-${pageKey}`);
+
+  if (!prefersReducedMotion && supportsFinePointer) {
+    window.addEventListener(
+      'pointermove',
+      (event) => {
+        const shiftX = ((event.clientX / window.innerWidth) - 0.5) * 12;
+        const shiftY = ((event.clientY / window.innerHeight) - 0.5) * 12;
+        body.style.setProperty('--bg-shift-x', `${shiftX.toFixed(2)}px`);
+        body.style.setProperty('--bg-shift-y', `${shiftY.toFixed(2)}px`);
+      },
+      { passive: true }
+    );
+  }
 
   /* Theme handling */
   const THEME_KEY = 'medilens-theme';
   const savedTheme = localStorage.getItem(THEME_KEY);
   if (savedTheme) {
     htmlEl.classList.toggle('dark', savedTheme === 'dark');
+  } else {
+    htmlEl.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
   }
 
   const toggles = document.querySelectorAll('[data-theme-toggle]');
   const isDark = () => htmlEl.classList.contains('dark');
+  const themeFlash = document.createElement('span');
+  themeFlash.className = 'theme-flash';
+  body.appendChild(themeFlash);
+
+  const starField = document.createElement('div');
+  starField.className = 'ambient-stars';
+  starField.setAttribute('aria-hidden', 'true');
+  const starCount = 34;
+  for (let i = 0; i < starCount; i += 1) {
+    const star = document.createElement('span');
+    star.style.left = `${Math.random() * 100}%`;
+    star.style.top = `${Math.random() * 72}%`;
+    star.style.animationDelay = `${Math.random() * 2.2}s`;
+    star.style.animationDuration = `${2.8 + Math.random() * 3.8}s`;
+    starField.appendChild(star);
+  }
+  body.appendChild(starField);
 
   const syncToggleState = () => {
     toggles.forEach((toggle) => {
-      toggle.classList.toggle('dark-active', isDark());
+      const dark = isDark();
+      toggle.classList.toggle('dark-active', dark);
+      toggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
     });
   };
 
   syncToggleState();
 
-  const handleThemeToggle = () => {
+  const runThemeFlash = (event) => {
+    if (prefersReducedMotion) return;
+    const x = event?.clientX ?? window.innerWidth / 2;
+    const y = event?.clientY ?? window.innerHeight / 2;
+    themeFlash.style.setProperty('--flash-x', `${x}px`);
+    themeFlash.style.setProperty('--flash-y', `${y}px`);
+    body.classList.remove('theme-flashing');
+    void themeFlash.offsetWidth;
+    body.classList.add('theme-flashing');
+    window.setTimeout(() => body.classList.remove('theme-flashing'), 560);
+  };
+
+  const handleThemeToggle = (event) => {
     const nextDarkState = !isDark();
+    runThemeFlash(event);
     htmlEl.classList.toggle('dark', nextDarkState);
     localStorage.setItem(THEME_KEY, nextDarkState ? 'dark' : 'light');
     syncToggleState();
   };
 
   toggles.forEach((toggle) => {
-    toggle.addEventListener('click', handleThemeToggle);
+    toggle.addEventListener('click', (event) => handleThemeToggle(event));
   });
 
   /* Language handling */
@@ -267,6 +318,14 @@
   });
 
   /* Intersection reveals */
+  const revealModes = ['up', 'left', 'right', 'zoom'];
+  document.querySelectorAll('.reveal').forEach((el, idx) => {
+    if (!el.dataset.revealMode) {
+      el.dataset.revealMode = revealModes[idx % revealModes.length];
+    }
+    el.classList.add(`reveal-${el.dataset.revealMode}`);
+  });
+
   if (prefersReducedMotion) {
     document.querySelectorAll('.reveal').forEach((el) => el.classList.add('revealed'));
   } else {
@@ -334,6 +393,43 @@
   );
 
   document.querySelectorAll('.counter').forEach((el) => counterObserver.observe(el));
+
+  /* Stats sparkline accents */
+  const buildSparkline = () => {
+    document.querySelectorAll('.stat-card').forEach((card, index) => {
+      if (card.querySelector('.stat-sparkline')) return;
+      const valueRaw = card.querySelector('.stat-value')?.textContent || '';
+      const value = parseFloat(valueRaw.replace(/[^\d.]/g, '')) || 40 + index * 9;
+      const width = 110;
+      const height = 34;
+      const steps = 14;
+      const points = [];
+      for (let i = 0; i < steps; i += 1) {
+        const x = (i / (steps - 1)) * width;
+        const wave = Math.sin((i + index * 1.2) * 0.8) * 7;
+        const trend = (i / (steps - 1)) * 14;
+        const y = Math.min(30, Math.max(4, 28 - trend - wave - (value % 6)));
+        points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      const sparkline = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      sparkline.setAttribute('class', 'stat-sparkline');
+      sparkline.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      sparkline.setAttribute('aria-hidden', 'true');
+
+      const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const lastPoint = points[points.length - 1].split(',');
+      const firstPoint = points[0].split(',');
+      area.setAttribute('d', `M ${firstPoint[0]} ${height} L ${points.join(' L ')} L ${lastPoint[0]} ${height} Z`);
+      area.setAttribute('class', 'stat-spark-area');
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      line.setAttribute('points', points.join(' '));
+      line.setAttribute('class', 'stat-spark-line');
+      sparkline.append(area, line);
+      card.appendChild(sparkline);
+    });
+  };
+  buildSparkline();
 
   /* Accordion */
   document.querySelectorAll('.accordion').forEach((accordion) => {
@@ -569,6 +665,186 @@
   mobileOverlay?.addEventListener('click', closeMobileNav);
   mobileMenu?.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', closeMobileNav);
+  });
+
+  /* Card parallax */
+  if (!prefersReducedMotion && supportsFinePointer) {
+    const parallaxTargets = document.querySelectorAll(
+      '.card, .research-card, .how-intro-card, .about-hero-copy, .about-hero-panel'
+    );
+    parallaxTargets.forEach((card) => {
+      card.classList.add('parallax-ready');
+      card.addEventListener('mousemove', (event) => {
+        const rect = card.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        const rotateY = (relX - 0.5) * 6;
+        const rotateX = (0.5 - relY) * 5;
+        card.style.transform = `translateY(-6px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+  }
+
+  /* Cursor spotlight */
+  if (!prefersReducedMotion && supportsFinePointer) {
+    const spotlight = document.createElement('div');
+    spotlight.className = 'cursor-spotlight';
+    spotlight.setAttribute('aria-hidden', 'true');
+    body.appendChild(spotlight);
+    window.addEventListener(
+      'pointermove',
+      (event) => {
+        spotlight.style.left = `${event.clientX}px`;
+        spotlight.style.top = `${event.clientY}px`;
+        const activeTarget =
+          event.target instanceof Element
+            ? event.target.closest('.cta-button, .button, .theme-toggle, .lang-toggle, .nav-links a, .hero-card')
+            : null;
+        spotlight.classList.toggle('active', Boolean(activeTarget));
+      },
+      { passive: true }
+    );
+  }
+
+  /* Command palette */
+  const palette = document.createElement('div');
+  palette.className = 'command-palette';
+  palette.setAttribute('aria-hidden', 'true');
+  palette.innerHTML = `
+    <div class="palette-shell" role="dialog" aria-modal="true" aria-label="Command menu">
+      <div class="palette-head">
+        <span>Quick Commands</span>
+        <kbd>Esc</kbd>
+      </div>
+      <input type="text" class="palette-input" placeholder="Type a command or page name..." />
+      <div class="palette-list" data-palette-list></div>
+      <p class="palette-foot">Use Up/Down to move, Enter to run, Ctrl/Cmd+K to open.</p>
+    </div>
+  `;
+  body.appendChild(palette);
+
+  const paletteInput = palette.querySelector('.palette-input');
+  const paletteList = palette.querySelector('[data-palette-list]');
+  let paletteOpen = false;
+  let selectedIndex = 0;
+  const paletteActions = [
+    { label: 'Go to Home', hint: 'index.html', run: () => (window.location.href = 'index.html') },
+    { label: 'Go to Dashboard', hint: 'dashboard.html', run: () => (window.location.href = 'dashboard.html') },
+    { label: 'Go to Med Vault', hint: 'vault.html', run: () => (window.location.href = 'vault.html') },
+    { label: 'Go to About', hint: 'about.html', run: () => (window.location.href = 'about.html') },
+    { label: 'Toggle Theme', hint: 'Dark / Light', run: () => handleThemeToggle() },
+    { label: 'Switch Language', hint: 'English / Hindi', run: () => langToggles[0]?.click() },
+  ];
+
+  const uploadTrigger = document.querySelector('[data-upload-trigger]');
+  if (uploadTrigger) {
+    paletteActions.push({
+      label: 'Open Upload Dialog',
+      hint: 'Analyze report',
+      run: () => uploadTrigger.click(),
+    });
+  }
+
+  const closePalette = () => {
+    paletteOpen = false;
+    palette.classList.remove('open');
+    palette.setAttribute('aria-hidden', 'true');
+  };
+
+  const renderPalette = () => {
+    if (!paletteList) return [];
+    const query = (paletteInput?.value || '').trim().toLowerCase();
+    const filtered = paletteActions.filter((item) =>
+      `${item.label} ${item.hint}`.toLowerCase().includes(query)
+    );
+    if (!filtered.length) {
+      selectedIndex = 0;
+      paletteList.innerHTML = '<button class="palette-item empty" type="button" disabled>No command found</button>';
+      return filtered;
+    }
+    if (selectedIndex >= filtered.length) selectedIndex = 0;
+    paletteList.innerHTML = filtered
+      .map(
+        (item, idx) => `
+          <button type="button" class="palette-item ${idx === selectedIndex ? 'selected' : ''}" data-palette-index="${idx}">
+            <span>${item.label}</span><small>${item.hint}</small>
+          </button>
+        `
+      )
+      .join('');
+    paletteList.querySelectorAll('[data-palette-index]').forEach((button) => {
+      button.addEventListener('mouseenter', () => {
+        selectedIndex = parseInt(button.getAttribute('data-palette-index') || '0', 10);
+        renderPalette();
+      });
+      button.addEventListener('click', () => {
+        selectedIndex = parseInt(button.getAttribute('data-palette-index') || '0', 10);
+        const current = filtered[selectedIndex];
+        closePalette();
+        current?.run();
+      });
+    });
+    return filtered;
+  };
+
+  const openPalette = () => {
+    paletteOpen = true;
+    palette.classList.add('open');
+    palette.setAttribute('aria-hidden', 'false');
+    selectedIndex = 0;
+    if (paletteInput) {
+      paletteInput.value = '';
+      renderPalette();
+      paletteInput.focus();
+    }
+  };
+
+  palette.addEventListener('click', (event) => {
+    if (event.target === palette) closePalette();
+  });
+
+  paletteInput?.addEventListener('input', () => {
+    selectedIndex = 0;
+    renderPalette();
+  });
+
+  paletteInput?.addEventListener('keydown', (event) => {
+    const filtered = renderPalette();
+    if (!filtered.length) return;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      selectedIndex = (selectedIndex + 1) % filtered.length;
+      renderPalette();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      selectedIndex = (selectedIndex - 1 + filtered.length) % filtered.length;
+      renderPalette();
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      const current = filtered[selectedIndex];
+      closePalette();
+      current?.run();
+    } else if (event.key === 'Escape') {
+      closePalette();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      if (paletteOpen) {
+        closePalette();
+      } else {
+        openPalette();
+      }
+      return;
+    }
+    if (event.key === 'Escape' && paletteOpen) {
+      closePalette();
+    }
   });
 
   /* Settings toggles */

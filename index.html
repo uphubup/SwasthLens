@@ -10,7 +10,8 @@
         var storageKey = 'medilens-theme';
         try {
           var savedTheme = localStorage.getItem(storageKey);
-          if (savedTheme === 'dark') {
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
             document.documentElement.classList.add('dark');
           }
         } catch (error) {
@@ -207,19 +208,45 @@
           </div>
         </section>
 
-        <section class="testimonial-strip">
-          <article class="testimonial reveal" data-delay="0">
-            <p>"At 72, I finally understand my labs without waiting for appointments."</p>
-            <strong>- Leela Menon</strong>
-          </article>
-          <article class="testimonial reveal" data-delay="150">
-            <p>"Sehat Lens helped me explain results to my grandchildren in plain words."</p>
-            <strong>- Mahesh Bedi</strong>
-          </article>
-          <article class="testimonial reveal" data-delay="250">
-            <p>"It feels like having a gentle clinician walking me through every value."</p>
-            <strong>- Sushila Kapoor</strong>
-          </article>
+        <section class="research-section" aria-labelledby="research-title">
+          <div class="research-header reveal" data-delay="0">
+            <h2 id="research-title">Real Problem. Real Need.</h2>
+            <p>Insights from our early research on medical report understanding.</p>
+          </div>
+
+          <div class="survey-insights-grid">
+            <article class="research-card stat-card reveal" data-delay="40">
+              <span class="stat-value">76%</span>
+              <p>of people find medical reports confusing.</p>
+            </article>
+            <article class="research-card stat-card reveal" data-delay="90">
+              <span class="stat-value">61%</span>
+              <p>say elderly family members struggle to understand reports.</p>
+            </article>
+            <article class="research-card stat-card reveal" data-delay="140">
+              <span class="stat-value">70%</span>
+              <p>want medical results explained in simple language.</p>
+            </article>
+            <article class="research-card stat-card reveal" data-delay="190">
+              <span class="stat-value">82%</span>
+              <p>believe a tool like this would be useful.</p>
+            </article>
+          </div>
+
+          <div class="scenario-grid">
+            <article class="research-card scenario-card reveal" data-delay="220">
+              <span class="scenario-label">Example Scenario</span>
+              <p>"At 72, I can finally understand my lab reports without waiting for doctor appointments."</p>
+            </article>
+            <article class="research-card scenario-card reveal" data-delay="270">
+              <span class="scenario-label">Designed for users like</span>
+              <p>"Now I can explain my medical results to my family in simple language."</p>
+            </article>
+            <article class="research-card scenario-card reveal" data-delay="320">
+              <span class="scenario-label">Example Scenario</span>
+              <p>"It feels like having a guide walking me through every value in my report."</p>
+            </article>
+          </div>
         </section>
 
       </div>

@@ -339,8 +339,15 @@
   const getCandidates = (query) => {
     const q = normalize(query);
     const firstToken = q.split(/\s+/).filter(Boolean)[0] || '';
+    if (!firstToken) return MED_DB;
+
+    // Single-character lookups should still filter by starting letter.
+    if (firstToken.length < 2) {
+      return MED_DB.filter((item) => item.nameBlob.startsWith(firstToken));
+    }
+
     const key = firstToken.slice(0, 2);
-    if (!key || !PREFIX_INDEX[key]) return MED_DB;
+    if (!PREFIX_INDEX[key]) return MED_DB;
     return [...new Set(PREFIX_INDEX[key])].map((idx) => MED_DB[idx]);
   };
 
@@ -380,17 +387,48 @@
     return score;
   };
 
+  const strictPrefixScore = (item, query) => {
+    const q = normalize(query);
+    if (!q) return -1;
+    const tokens = q.split(/\s+/).filter(Boolean);
+    const nameWords = item.nameBlob.split(/\s+/).filter(Boolean);
+    const variantText = (item.variant || '').toLowerCase();
+    const hasAllTokens = tokens.every((token) => nameWords.some((w) => w.startsWith(token)) || variantText.includes(token));
+    if (!hasAllTokens) return -1;
+
+    let score = 10;
+    if (item.nameBlob.startsWith(q)) score += 12;
+    if (nameWords[0]?.startsWith(tokens[0])) score += 5;
+    score += Math.max(0, 4 - Math.abs(item.name.length - q.length) * 0.05);
+    return score;
+  };
+
   const rankMatches = (query) => {
-    const pool = applyFilter(getCandidates(query));
-    const scored = [];
+    const q = normalize(query);
+    const pool = applyFilter(getCandidates(q));
+    const strictScored = [];
 
     pool.forEach((item) => {
-      const score = fuzzyScore(item, query);
-      if (score > 0) scored.push({ item, score });
+      const score = strictPrefixScore(item, q);
+      if (score > 0) strictScored.push({ item, score });
     });
 
-    scored.sort((a, b) => b.score - a.score);
-    return scored.map((s) => s.item);
+    if (strictScored.length) {
+      strictScored.sort((a, b) => b.score - a.score);
+      return strictScored.map((s) => s.item);
+    }
+
+    // Fuzzy fallback only after a reasonably specific query.
+    if (q.length < 3) return [];
+
+    const fuzzyScored = [];
+    pool.forEach((item) => {
+      const score = fuzzyScore(item, q);
+      if (score > 0) fuzzyScored.push({ item, score });
+    });
+
+    fuzzyScored.sort((a, b) => b.score - a.score);
+    return fuzzyScored.map((s) => s.item);
   };
 
   const setActiveSuggestion = (index) => {
